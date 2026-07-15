@@ -1,30 +1,49 @@
 import prisma from "../prisma.js";
+import { startHeartbeat } from "./leaseManager.js";
 
 export async function processJob(job) {
 
-    console.log(`Processing Job ${job.id}`);
+    const heartbeat = startHeartbeat(job.id);
 
-    /**
-     * Simulate actual work
-     *
-     * Later this becomes:
-     *
-     * switch(job.type){
-     *    case "email":
-     *    case "pdf":
-     * }
-     */
+    try {
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log(`Processing Job ${job.id}`);
 
-    await prisma.job.update({
-        where: {
-            id: job.id,
-        },
-        data: {
-            status: "COMPLETED",
-        },
-    });
+        // Simulate long work
+        await new Promise(resolve =>
+            setTimeout(resolve, 60000)
+        );
 
-    console.log(`Job ${job.id} completed`);
+        clearInterval(heartbeat);
+
+        await prisma.job.update({
+            where: {
+                id: job.id,
+            },
+            data: {
+                status: "COMPLETED",
+                leasedUntil: null,
+            },
+        });
+
+        console.log(`Job ${job.id} completed`);
+
+    } catch (err) {
+
+        clearInterval(heartbeat);
+
+        console.error(err);
+
+        await prisma.job.update({
+            where: {
+                id: job.id,
+            },
+            data: {
+                status: "FAILED",
+                leasedUntil: null,
+            },
+        });
+
+    }
+
 }
