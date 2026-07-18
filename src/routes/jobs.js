@@ -1,6 +1,7 @@
 import express from "express";
 import prisma from "../prisma.js";
 import { createJobSchema } from "../validators/jobValidator.js";
+import { replayDLQ } from "../queue/replayDLQ.js";
 
 const router = express.Router();
 
@@ -20,7 +21,11 @@ router.post("/", async (req, res) => {
             data: {
                 type,
                 payload,
-            },
+                status: "PENDING",
+                attempts: 0,
+                maxAttempts: 3,
+                nextRetryAt: null
+            }
         });
 
         return res.status(201).json(job);
@@ -33,5 +38,8 @@ router.post("/", async (req, res) => {
         });
     }
 });
+
+
+
 
 export default router;

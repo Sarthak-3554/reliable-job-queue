@@ -10,15 +10,7 @@ export async function reserveJob() {
             FROM "Job"
 
             WHERE
-
-                status = 'PENDING'
-
-                OR
-
-                (
-                    status = 'RUNNING'
-                    AND "leasedUntil" < NOW()
-                )
+            (status = 'PENDING') OR (status='FAILED' AND "nextRetryAt" <= NOW()) OR (status='RUNNING'AND "leasedUntil" < NOW())
 
             ORDER BY "createdAt"
 
@@ -42,8 +34,9 @@ export async function reserveJob() {
             },
 
             data: {
-                status: "RUNNING",
-                leasedUntil: lease,
+                status : "RUNNING",
+                leasedUntil : lease,
+                nextRetryAt : null
             }
 
         });

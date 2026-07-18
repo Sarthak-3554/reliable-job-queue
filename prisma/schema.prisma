@@ -22,17 +22,41 @@ enum JobStatus {
 
 model Job {
 
-  id        Int       @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
 
-  type      String
+  type          String
+  payload       Json
 
-  payload   Json
+  status        JobStatus
 
-  status    JobStatus @default(PENDING)
+  leasedUntil   DateTime?
 
-  leasedUntil DateTime?
+  attempts      Int        @default(0)
 
-  createdAt DateTime  @default(now())
+  maxAttempts   Int        @default(3)
 
-  updatedAt DateTime  @updatedAt
+  nextRetryAt   DateTime?
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model DeadLetterJob {
+
+  id            Int      @id @default(autoincrement())
+
+  originalJobId Int
+
+  type          String
+
+  payload        Json
+
+  attempts       Int
+
+  maxAttempts     Int
+
+  error          String?
+
+  failedAt       DateTime @default(now())
+
 }
