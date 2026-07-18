@@ -87,3 +87,37 @@ reliable-job-queue
 ├── package.json
 └── README.md
 ```
+
+---
+
+# Architecture
+
+```mermaid
+flowchart TD
+
+    Client -->|POST /jobs| API
+
+    API --> DB[(PostgreSQL)]
+
+    Worker -->|Reserve Job| DB
+
+    DB -->|PENDING Job| Worker
+
+    Worker -->|Lease + Heartbeat| DB
+
+    Worker -->|Success| Completed[COMPLETED]
+
+    Worker -->|Failure| Retry{Attempts Left?}
+
+    Retry -->|Yes| Failed[FAILED]
+
+    Failed --> Delay[Exponential Backoff]
+
+    Delay --> Worker
+
+    Retry -->|No| DLQ[Dead Letter Queue]
+
+    DLQ --> Replay["POST /dlq/:id/replay"]
+
+    Replay --> DB
+```
