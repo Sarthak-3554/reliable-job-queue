@@ -15,12 +15,13 @@ router.post("/", async (req, res) => {
             });
         }
 
-        const { type, payload } = result.data;
+        const {type, payload, priority = "NORMAL"} = req.body;
 
         const job = await prisma.job.create({
             data: {
                 type,
                 payload,
+                priority,
                 status: "PENDING",
                 attempts: 0,
                 maxAttempts: 3,

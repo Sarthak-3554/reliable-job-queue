@@ -20,27 +20,34 @@ enum JobStatus {
   FAILED
 }
 
+enum JobPriority {
+  HIGH
+  NORMAL
+  LOW
+}
+
 model Job {
 
-  id            Int        @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
 
   type          String
   payload       Json
 
   status        JobStatus
 
+  priority      JobPriority  @default(NORMAL)
+
   leasedUntil   DateTime?
 
-  attempts      Int        @default(0)
+  attempts      Int          @default(0)
 
-  maxAttempts   Int        @default(3)
+  maxAttempts   Int          @default(3)
 
   nextRetryAt   DateTime?
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
-
 model DeadLetterJob {
 
   id            Int      @id @default(autoincrement())

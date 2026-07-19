@@ -12,7 +12,13 @@ export async function reserveJob() {
             WHERE
             (status = 'PENDING') OR (status='FAILED' AND "nextRetryAt" <= NOW()) OR (status='RUNNING'AND "leasedUntil" < NOW())
 
-            ORDER BY "createdAt"
+            ORDER BY
+            CASE priority
+                WHEN 'HIGH' THEN 1
+                WHEN 'NORMAL' THEN 2
+                WHEN 'LOW' THEN 3
+            END,
+            "createdAt"
 
             LIMIT 1
 
