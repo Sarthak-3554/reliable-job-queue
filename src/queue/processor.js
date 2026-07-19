@@ -2,6 +2,7 @@ import prisma from "../prisma.js";
 import { startHeartbeat } from "./leaseManager.js";
 import { getRetryDelay } from "./retry.js";
 import { moveToDLQ } from "./dlq.js";
+import { WORKER_ID } from "../worker.js";
 
 export async function processJob(job) {
 
@@ -9,11 +10,11 @@ export async function processJob(job) {
 
     try {
 
-        console.log(`Processing Job ${job.id}`);
+        console.log(`[Worker ${WORKER_ID}] Processing Job ${job.id}`);
 
         // Simulate long work
         await new Promise(resolve =>
-            setTimeout(resolve, 30000)
+            setTimeout(resolve, 10000)
         );
 
         clearInterval(heartbeat);
@@ -29,7 +30,7 @@ export async function processJob(job) {
         });
         //throw new Error("Simulated job failure"); 
 
-        console.log(`Job ${job.id} completed`);
+        console.log(`[Worker ${WORKER_ID}] Job ${job.id} completed`);
 
     } catch (err) {
         console.log("Actual error:", err);
@@ -54,14 +55,14 @@ export async function processJob(job) {
                 }
             }); 
 
-            console.log(`Retry ${attempts}/${dbJob.maxAttempts} scheduled.`);
+            console.log(`[Worker ${WORKER_ID}] Retry ${attempts}/${dbJob.maxAttempts} scheduled.`);
 
 
         } else {
 
            await moveToDLQ({...job,attempts},err);
 
-            console.log(`Job ${job.id} moved to Dead Letter Queue.`);
+            console.log(`[Worker ${WORKER_ID}] Job ${job.id} moved to Dead Letter Queue.`);
         }
     }
     finally {

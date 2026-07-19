@@ -39,6 +39,8 @@ model Job {
 
   leasedUntil   DateTime?
 
+  runAt DateTime @default(now())
+
   attempts      Int          @default(0)
 
   maxAttempts   Int          @default(3)
@@ -47,6 +49,8 @@ model Job {
 
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+
+
 }
 model DeadLetterJob {
 

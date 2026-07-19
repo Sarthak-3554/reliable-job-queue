@@ -5,6 +5,32 @@ import { replayDLQ } from "../queue/replayDLQ.js";
 
 const router = express.Router();
 
+router.post("/bulk", async (req, res) => {
+
+    const count = req.body.count ?? 50;
+
+    const jobs = [];
+
+    for (let i = 1; i <= count; i++) {
+        jobs.push({
+            type: `Job-${i}`,
+            payload: { number: i },
+            priority: "NORMAL",
+            status: "PENDING",
+            attempts: 0,
+            maxAttempts: 3,
+        });
+    }
+
+    await prisma.job.createMany({
+        data: jobs
+    });
+
+    res.json({
+        inserted: count
+    });
+
+});
 router.post("/", async (req, res) => {
     try {
         const result = createJobSchema.safeParse(req.body);
@@ -15,13 +41,14 @@ router.post("/", async (req, res) => {
             });
         }
 
-        const {type, payload, priority = "NORMAL"} = req.body;
+        const {type, payload, priority = "NORMAL", runAt} = req.body;
 
         const job = await prisma.job.create({
             data: {
                 type,
                 payload,
                 priority,
+                runAt:runAt ? new Date(runAt):undefined,
                 status: "PENDING",
                 attempts: 0,
                 maxAttempts: 3,
